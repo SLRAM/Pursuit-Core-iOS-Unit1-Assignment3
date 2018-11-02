@@ -7,25 +7,6 @@
 //
 
 import Foundation
-//given functions
-func mathStuffFactory(opString: String) -> (Double, Double) -> Double {
-switch opString {
-  case "+":
-    return {x, y in x + y }
-  case "-":
-    return {x, y in x - y }
-  case "*":
-    return {x, y in x * y }
-  case "/":
-    return {x, y in x / y }
-  default:
-    return {x, y in x + y }
-  }
-}
-
-func myFilter(inputArray: [Int], filter: (Int) -> Bool) -> [Int] {
-    return [0] // remove
-}
 
 var calculate = true
 var firstChoice = true
@@ -43,19 +24,11 @@ var saveArray = [0]
 var saveByOp = ""
 var saveNum = 0
 var arrayFail = 0
+var saveEquation = ""
 
-
-func minMax(num1: String, num2: String) -> Bool {
-    
-    if let _ = Int(num1), let _ = Int(num2) {
-        return true
-    }
-    return false
-}
-
-func test(string: String) -> Bool {
+func checkStringTrue(string: String) -> Bool {
     let arrayTest = string.components(separatedBy: " ")
-    if arrayTest.count == 3 && minMax(num1: arrayTest[0], num2: arrayTest[2]){
+    if arrayTest.count == 3 {
         //before I convert the string to a Double check if == to min.max string
         if let num1 = Double(arrayTest[0]), let num2 = Double(arrayTest[2]) {
             let oper = arrayTest[1]
@@ -70,32 +43,7 @@ func test(string: String) -> Bool {
     return false
 }
 
-
-func intDouble(num1: Double, num2: Double) -> Bool{
-    //if value doesn't have numbers after decimal point
-    let intDoub = num1.truncatingRemainder(dividingBy: 1) == 0
-    let intDoub2 = num2.truncatingRemainder(dividingBy: 1) == 0
-    
-    if intDoub && intDoub2 {
-        return true
-    }
-    return false
-}
-
-func intArray(string: String) -> [Int]? {
-    //still accepts letters in array
-    let convert = string.components(separatedBy: ",")
-    var arrayOfInts = [Int]()
-    for index in 0..<convert.count {
-        if let int = Int(convert[index]) {
-            arrayOfInts.append(int)
-        } else {
-            return nil
-        }
-    }
-    return arrayOfInts
-}
-func testTwo(string: String) -> Bool {
+func checkStringTrue2(string: String) -> Bool {
     let arrayTest2 = string.components(separatedBy: " ")
     if arrayTest2.count == 5 && arrayTest2[2] == "by" {
         let term = arrayTest2[0]
@@ -118,13 +66,17 @@ func testTwo(string: String) -> Bool {
                 return false
             }
         case "map":
-            if byOperation == "*" || byOperation == "/" {
+            if byOperation == "*" || byOperation == "/" || byOperation == "+" || byOperation == "-" {
                 if let num = Int(arrayTest2[4]), let arrayNums = intArray(string: arrayTest2[1]) {
-                    saveTerm = term
-                    saveArray = arrayNums
-                    saveByOp = byOperation
-                    saveNum = num
-                    return true
+                    if !ifDivideByZero(op: byOperation, num: Double(num)) {
+                        saveTerm = term
+                        saveArray = arrayNums
+                        saveByOp = byOperation
+                        saveNum = num
+                        return true
+                    } else {
+                        return false
+                    }
                 } else {
                     print("Invalid response")
                     return false
@@ -134,7 +86,7 @@ func testTwo(string: String) -> Bool {
                 return false
             }
         case "reduce":
-            if byOperation == "+" || byOperation == "*" {
+            if byOperation == "+" || byOperation == "-" || byOperation == "*" || byOperation == "/"{
                 if let num = Int(arrayTest2[4]), let arrayNums = intArray(string: arrayTest2[1]) {
                     saveTerm = term
                     saveArray = arrayNums
@@ -157,35 +109,105 @@ func testTwo(string: String) -> Bool {
     print("Invalid response")
     return false
 }
-
-func myReduce(arrOfNum: [Int], byNumber: Int, byOperator: String) -> Int{
-    var tempResult = byNumber
-    switch byOperator {
-    case "+":
-        for num in arrOfNum{
-            tempResult += num
-        }
-        return tempResult
-    case "*":
-        for num in arrOfNum{
-            tempResult *= num
-        }
-        return tempResult
-    default:
-        print("You should never see this!")
+func ifDivideByZero(op: String, num: Double) -> Bool {
+    if op == "/" && num == 0 {
+        print("Sorry you can't divide by 0")
+        return true
     }
-    return -1
+    return false
 }
 
-func myFilter() {
-    
+func intArray(string: String) -> [Int]? {
+    let convert = string.components(separatedBy: ",")
+    var arrayOfInts = [Int]()
+    for index in 0..<convert.count {
+        if let int = Int(convert[index]) {
+            arrayOfInts.append(int)
+        } else {
+            return nil
+        }
+    }
+    return arrayOfInts
 }
-func myMap() {
+
+func intDouble(num1: Double, num2: Double) -> Bool{
+    //if value doesn't have numbers after decimal point
+    let intDoub = num1.truncatingRemainder(dividingBy: 1) == 0
+    let intDoub2 = num2.truncatingRemainder(dividingBy: 1) == 0
     
+    if intDoub && intDoub2 {
+        return true
+    }
+    return false
 }
+
+func mathStuffFactory(opString: String) -> (Double, Double) -> Double {
+    switch opString {
+    case "+":
+        return {x, y in x + y }
+    case "-":
+        return {x, y in x - y }
+    case "*":
+        return {x, y in x * y }
+    case "/":
+        return {x, y in x / y }
+    default:
+        return {x, y in x + y }
+    }
+}
+
+func minMaxOverflow(string: String) -> Bool {
+    let arrayTest = string.components(separatedBy: " ")
+    if let _ = Int(arrayTest[0]), let _ = Int(arrayTest[2]) {
+        return true
+    }
+    return false
+}
+
+func myMap(array: [Int], closure: (Int) -> Int) ->[Int] {
+    var newArray = [Int]()
+    for num in array {
+        newArray.append(closure(num))
+    }
+    return newArray
+}
+
+func myFilter(inputArray: [Int], filter: (Int) -> Bool) -> [Int] {
+    var newArray = [Int]()
+    for num in inputArray {
+        if filter(num) {
+            newArray.append(num)
+        }
+    }
+    return newArray
+}
+
+func myReduce(array: [Int], closure: (Int) -> Int) -> Int {
+    var sum = 0
+    for num in array {
+        sum += closure(num)
+    }
+    switch saveByOp {
+    case "+":
+        return saveNum + sum
+    case "-":
+        return saveNum - sum
+    case "*":
+        return saveNum * sum
+    case "/":
+        guard !ifDivideByZero(op: saveByOp, num: Double(sum)) else {
+            print("the sum of your array is zero")
+            return saveNum
+        }
+        return saveNum / sum
+    default:
+        return -1
+    }
+}
+
 func tryAgain() {
     
-    print("calculate something else? yes or no")
+    print("Would you like to calculate something else? yes or no")
     if let anotherTry = readLine()?.lowercased() {
         switch anotherTry {
         case "yes":
@@ -198,24 +220,21 @@ func tryAgain() {
         }
     }
 }
-func checkDevZero(op: String, num: Double) -> Bool {
-    if op == "/" && num == 0 {
-        return true
-    }
-    return false
-}
 
+
+print("Hello! Welcome to my project!")
 
 repeat {
-    //check that number is in min/max range and result does not go over
     while firstChoice {
-        print("Would you like to Option 1 or Option 2?")
+        print("Please choose from 1: normal calculator/guessing game or 2: higher order functions?")
         if let choice = readLine()?.lowercased() {
             switch choice {
             case "1":
+                print("You chose normal calculator/ guessing game!")
                 firstChoice = false
                 optionOne = true
             case "2":
+                print("You chose higher order functions!")
                 firstChoice = false
                 optionTwo = true
             default:
@@ -225,12 +244,15 @@ repeat {
     }
     
     while optionOne {
-        print("write your equation. number (operation symbol) number")
+        print("Please write your equation or let's guess the missing operator.")
+        print("Here are some examples:")
+        print("For calculator: \" 2.8 + 6\", For guessing game: \"8 ? 4\"")
         if let equation = readLine() {
-            if test(string: equation) == true && operation != "?" {
+            saveEquation = equation
+            if checkStringTrue(string: equation) == true && operation != "?" {
                 optionOne = false
                 mathLoop = true
-            } else if test(string: equation) == true && operation == "?" {
+            } else if checkStringTrue(string: equation) == true && operation == "?" {
                 optionOne = false
                 solveLoop = true
             } else {
@@ -240,22 +262,63 @@ repeat {
     }
     
     while optionTwo {
-        print("enter your operation. choose from filter, map, and reduce, list some numbers, ")
+        print("Enter your function, your set of numbers, your operator and the final number.")
+        print("Here's an example: \"reduce 1,2,3,4 by / 5\"")
         if let equationTwo = readLine()?.lowercased() {
-            if testTwo(string: equationTwo) {
+            if checkStringTrue2(string: equationTwo) {
                 switch saveTerm {
                 case "filter":
                     optionTwo = false
                     print("you chose filter")
-                    print("The results are: \(myFilter())")
+                    print(myFilter(inputArray: saveArray) {(num: Int) -> Bool in
+                        switch saveByOp {
+                        case ">":
+                            if num > saveNum {
+                                return true
+                            } else {
+                                return false
+                            }
+                        case "<":
+                            if num < saveNum {
+                                return true
+                            } else {
+                                return false
+                            }
+                        case "=":
+                            if num == saveNum {
+                                return true
+                            } else {
+                                return false
+                            }
+                        default:
+                            print("error")
+                        }
+                        return false
+                    })
+                    tryAgain()
                 case "map":
                     optionTwo = false
                     print("you chose map")
-                    print("The results are: \(myMap())")
+                    print(myMap(array: saveArray) {(num: Int) -> Int in
+                        switch saveByOp {
+                        case "+":
+                            return num + saveNum
+                        case "-":
+                            return num - saveNum
+                        case "/":
+                            return num / saveNum
+                        case "*":
+                            return num * saveNum
+                        default:
+                            print("error")
+                        }
+                        return -1
+                    })
+                    tryAgain()
                 case "reduce":
                     optionTwo = false
                     print("you chose reduce")
-                    print("the results are: \(myReduce(arrOfNum: saveArray, byNumber: saveNum, byOperator: saveByOp))")
+                    print(myReduce(array: saveArray, closure: {$0}))
                     tryAgain()
                 default:
                     print("YOU SHOULD NEVER SEE THIS!")
@@ -263,17 +326,18 @@ repeat {
             }
         }
     }
-    
-    
     while mathLoop {
         let mathFunction = mathStuffFactory(opString: operation)
-        if checkDevZero(op: operation, num: number2) {
-            print("sorry you can't divide by 0")
+        if ifDivideByZero(op: operation, num: number2) {
             mathLoop = false
             optionOne = true
         } else {
             if intDouble(num1: number1, num2: number2) {
-                print("\(Int(number1)) \(operation) \(Int(number2)) = \(Int(mathFunction(number1, number2)))")
+                if minMaxOverflow(string: saveEquation) {
+                    print("\(Int(number1)) \(operation) \(Int(number2)) = \(Int(mathFunction(number1, number2)))")
+                } else {
+                    print("That is not a valid equation")
+                }
             } else {
                 print("\(number1) \(operation) \(number2) = \(mathFunction(number1, number2))")
             }
@@ -286,7 +350,7 @@ repeat {
             operation = String(char)
         }
         if operation != "?" {
-            if !checkDevZero(op: operation, num: number2) {
+            if !ifDivideByZero(op: operation, num: number2) {
                 solveLoop = false
                 loopGuess = true
                 let solveFunction = mathStuffFactory(opString: operation)
